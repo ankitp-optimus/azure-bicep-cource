@@ -1,0 +1,39 @@
+name: Deploy Bicep files
+
+trigger: none
+# - main
+
+variables:
+  resourceGroupName: 'RG-Ankit_Pathak'
+  location: 'westeurope'
+  webAppName: 'bicep0017'
+  templateFile: '01-bicep-webapp/webapp-linux.bicep'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+
+- task: AzureCLI@2
+  displayName: Preview Bicep Changes
+  inputs:
+    azureSubscription: 'Microsoft-Azure-0(9c54b2d3-f18a-4e50-8914-fede753c1f72)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az --version
+      az group create --name $(resourceGroupName) --location $(location)
+      az deployment group what-if --resource-group $(resourceGroupName) \
+         --template-file $(templateFile) \
+         --parameters webAppName=$(webAppName)
+
+- task: AzureCLI@2
+  displayName: Deploy Bicep To Azure
+  inputs:
+    azureSubscription: 'Microsoft-Azure-0(9c54b2d3-f18a-4e50-8914-fede753c1f72)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az deployment group create --resource-group $(resourceGroupName) \
+         --template-file $(templateFile) \
+         --parameters webAppName=$(webAppName)
